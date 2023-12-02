@@ -9,11 +9,11 @@ client = OpenAI()
 
 def send(message):
     
-    stream = client.chat.completions.create(
+    completion = client.chat.completions.create(
         messages=[
             {
                 "role": "system",
-                "content": "Please keep your answers concise unless instructed otherwise."
+                "content": "Please keep your answers concise unless instructed otherwise. To output Latex formulas, enclose them with a $ symbol."
             },
             {
                 "role": "user",
@@ -21,20 +21,9 @@ def send(message):
             }
         ],
         model="gpt-4-1106-preview",
-        stream=True,
     )
 
-    buffer = ''
-    
-    for chunk in stream:
-        if chunk.choices[0].delta.content is not None:
-            text = chunk.choices[0].delta.content
-            buffer += text
-            if '\n' in buffer:
-                message, buffer = buffer.split('\n', 1)
-                display(Markdown(message))
-
-    display(Markdown(buffer))
+    display(Markdown(completion.choices[0].message.content))
 
 def s(message):
     send(message)
@@ -59,7 +48,7 @@ def summary_pdf(url):
     reader = PdfReader("fetched.pdf")
     i = 1
     for page in reader.pages:
-        print(f"page({i})")
+        print(f"--- page({i}) ---")
         i = i + 1
         process_text(page.extract_text())
     print("========== done. ==========")
