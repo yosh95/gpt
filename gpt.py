@@ -8,9 +8,12 @@ from pypdf import PdfReader
 import time
 import re
 
+GPT35 = "gpt-3.5-turbo-1106"
+GPT4 = "gpt-4-1106-preview"
+
 client = OpenAI()
 
-def send(message):
+def send(message, model=GPT35):
 
     start_time = time.time()
     
@@ -29,7 +32,7 @@ When outputting in Latex format, do not break lines.
                 "content": message,
             }
         ],
-        model="gpt-4-1106-preview",
+        model=model,
     )
 
     end_time = time.time()
@@ -38,14 +41,11 @@ When outputting in Latex format, do not break lines.
     display(Markdown(completion.choices[0].message.content))
     print(f"(elapsed: {round(elapsed_time, 2)}sec)")
 
-def s(message):
-    send(message)
+def send4(message):
+    send(message, GPT4)
 
 def trivia():
     s("今日のトリビアを一つお願いします。")
-
-def t():
-    trivia()
 
 ##### process url #####
 def name_from_url(url):
@@ -62,12 +62,7 @@ def name_from_url(url):
     return url
     
 ##### pdf ######
-def process_text(text_block):
-    # ここに処理を実装します。下記は単にテキストをプリントするだけの例です。
-    message = f"下記の文章を日本語で要約してください。\n\n{text_block}"
-    send(message)
-
-def summary_pdf(url, pages=1):
+def pdf(url, pages=1, model=GPT35):
     response = requests.get(url)
     file_name = name_from_url(url)
     open(file_name, "wb").write(response.content)
@@ -80,11 +75,12 @@ def summary_pdf(url, pages=1):
         page_numbers.append(i)
         if len(page_numbers) == pages:
             print(f"--- page({','.join(map(str, page_numbers))}) ---")
-            process_text(text)
+            message = f"下記の文章を日本語で要約してください。\n\n{text}"
+            send(message, model)
             text = ''
             page_numbers = []
         i = i + 1
     print("========== done. ==========")
 
-def pdf(url, pages=1):
-    summary_pdf(url, pages)
+def pdf4(url, pages=1, model=GPT4):
+    pdf(url, pages, model)
