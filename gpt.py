@@ -5,15 +5,24 @@ import requests
 from io import BytesIO
 from pypdf import PdfReader
 
+import time
+import re
+
 client = OpenAI()
 
 def send(message):
+
+    start_time = time.time()
     
     completion = client.chat.completions.create(
         messages=[
             {
                 "role": "system",
-                "content": "Please keep your answers concise unless instructed otherwise. To output Latex formulas, enclose them with a $ symbol."
+                "content": """
+Please keep your answers concise unless instructed otherwise.
+To output Latex formulas, enclose them with a $ symbol.
+When outputting in Latex format, do not break lines.
+"""
             },
             {
                 "role": "user",
@@ -23,7 +32,11 @@ def send(message):
         model="gpt-4-1106-preview",
     )
 
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+
     display(Markdown(completion.choices[0].message.content))
+    print(f"(elapsed: {round(elapsed_time, 2)}sec)")
 
 def s(message):
     send(message)
@@ -33,6 +46,20 @@ def trivia():
 
 def t():
     trivia()
+
+##### process url #####
+def name_from_url(url):
+    # 'https://' または 'http://' を取り除く
+# 'https://' または 'http://' を取り除く
+    url = re.sub(r'^https?://', '', url)
+
+    # '.' または '/' を '_' に置換する
+    url = re.sub(r'[./]', '_', url)
+
+    # '_pdf'で終わっていたら.pdfに書き換え
+    url = re.sub('_pdf$', '.pdf', url)
+
+    return url
     
 ##### pdf ######
 def process_text(text_block):
@@ -40,18 +67,24 @@ def process_text(text_block):
     message = f"下記の文章を日本語で要約してください。\n\n{text_block}"
     send(message)
 
-def summary_pdf(url):
-    print(f"Fetching pdf... URL:{url}")
+def summary_pdf(url, pages=1):
     response = requests.get(url)
-    open("fetched.pdf", "wb").write(response.content)
-    print("Starts the PDF summarization process.")
-    reader = PdfReader("fetched.pdf")
+    file_name = name_from_url(url)
+    open(file_name, "wb").write(response.content)
+    reader = PdfReader(file_name)
     i = 1
+    text = ''
+    page_numbers = []
     for page in reader.pages:
-        print(f"--- page({i}) ---")
+        text = text + page.extract_text()
+        page_numbers.append(i)
+        if len(page_numbers) == pages:
+            print(f"--- page({','.join(map(str, page_numbers))}) ---")
+            process_text(text)
+            text = ''
+            page_numbers = []
         i = i + 1
-        process_text(page.extract_text())
     print("========== done. ==========")
 
-def pdf(url):
-    summary_pdf(url)
+def pdf(url, pages=1):
+    summary_pdf(url, pages)
