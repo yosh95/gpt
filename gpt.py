@@ -13,7 +13,7 @@ GPT4 = "gpt-4-1106-preview"
 
 client = OpenAI()
 
-def send(message, model=GPT35):
+def s(message, model=GPT35):
 
     start_time = time.time()
     
@@ -41,10 +41,10 @@ When outputting in Latex format, do not break lines.
     display(Markdown(completion.choices[0].message.content))
     print(f"(elapsed: {round(elapsed_time, 2)}sec)")
 
-def send4(message):
+def s4(message):
     send(message, GPT4)
 
-def trivia():
+def t():
     s("今日のトリビアを一つお願いします。")
 
 ##### process url #####
