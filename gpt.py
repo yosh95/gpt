@@ -76,7 +76,7 @@ def pdf(url, pages=1, model=GPT35):
         if len(page_numbers) == pages:
             print(f"--- page({','.join(map(str, page_numbers))}) ---")
             message = f"下記の文章を日本語で要約してください。\n\n{text}"
-            send(message, model)
+            s(message, model)
             text = ''
             page_numbers = []
         i = i + 1
