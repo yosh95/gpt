@@ -42,10 +42,13 @@ When outputting in Latex format, do not break lines.
     print(f"(elapsed: {round(elapsed_time, 2)}sec)")
 
 def s4(message):
-    send(message, GPT4)
+    s(message, GPT4)
 
 def t():
     s("今日のトリビアを一つお願いします。")
+
+def t4():
+    s("今日のトリビアを一つお願いします。", GPT4)
 
 ##### process url #####
 def name_from_url(url):
@@ -63,9 +66,15 @@ def name_from_url(url):
     
 ##### pdf ######
 def pdf(url, pages=1, model=GPT35):
-    response = requests.get(url)
-    file_name = name_from_url(url)
-    open(file_name, "wb").write(response.content)
+
+    # urlがhttpsでなければローカルファイルと判断
+    if url.startswith("http"):
+        response = requests.get(url)
+        file_name = name_from_url(url)
+        open(file_name, "wb").write(response.content)
+    else:
+        file_name = url
+
     reader = PdfReader(file_name)
     i = 1
     text = ''
