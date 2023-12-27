@@ -11,9 +11,21 @@ import re
 GPT35 = "gpt-3.5-turbo-1106"
 GPT4 = "gpt-4-1106-preview"
 
+ROLE_0 = ""
+
+ROLE_1 = """
+Please keep your answers concise unless instructed otherwise.
+To output Latex formulas, enclose them with a $ symbol.
+When outputting in Latex format, do not break lines.
+"""
+
+ROLE_2 = """
+あなたは小学校の先生です。小学生でもわかるように回答してください。漢字にはフリガナを振ってください。
+"""
+
 client = OpenAI()
 
-def s(message, model=GPT35):
+def s(message, model=GPT4):
 
     start_time = time.time()
     
@@ -21,11 +33,7 @@ def s(message, model=GPT35):
         messages=[
             {
                 "role": "system",
-                "content": """
-Please keep your answers concise unless instructed otherwise.
-To output Latex formulas, enclose them with a $ symbol.
-When outputting in Latex format, do not break lines.
-"""
+                "content": ROLE_0,
             },
             {
                 "role": "user",
@@ -41,14 +49,11 @@ When outputting in Latex format, do not break lines.
     display(Markdown(completion.choices[0].message.content))
     print(f"(elapsed: {round(elapsed_time, 2)}sec)")
 
-def s4(message):
-    s(message, GPT4)
+def s3(message):
+    s(message, GPT35)
 
 def t():
     s("今日のトリビアを一つお願いします。")
-
-def t4():
-    s("今日のトリビアを一つお願いします。", GPT4)
 
 ##### process url #####
 def name_from_url(url):
@@ -65,7 +70,7 @@ def name_from_url(url):
     return url
     
 ##### pdf ######
-def pdf(url, pages=1, model=GPT35):
+def pdf(url, pages=1, model=GPT4):
 
     # urlがhttpsでなければローカルファイルと判断
     if url.startswith("http"):
@@ -91,5 +96,5 @@ def pdf(url, pages=1, model=GPT35):
         i = i + 1
     print("========== done. ==========")
 
-def pdf4(url, pages=1, model=GPT4):
+def pdf3(url, pages=1, model=GPT35):
     pdf(url, pages, model)
