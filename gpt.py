@@ -70,7 +70,7 @@ def name_from_url(url):
     return url
     
 ##### pdf ######
-def pdf(url, pages=1, model=GPT4):
+def pdf(url, pages=1, model=GPT4, prompt="下記の文章を日本語で要約してください。"):
 
     # urlがhttpsでなければローカルファイルと判断
     if url.startswith("http"):
@@ -89,7 +89,7 @@ def pdf(url, pages=1, model=GPT4):
         page_numbers.append(i)
         if len(page_numbers) == pages:
             print(f"--- page({','.join(map(str, page_numbers))}) ---")
-            message = f"下記の文章を日本語で要約してください。\n\n{text}"
+            message = f"{prompt}\n\n{text}"
             s(message, model)
             text = ''
             page_numbers = []
