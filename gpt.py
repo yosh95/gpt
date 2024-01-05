@@ -23,11 +23,15 @@ ROLE_2 = """
 あなたは小学校の先生です。小学生でもわかるように回答してください。漢字にはフリガナを振ってください。
 """
 
+history = []
+
 client = OpenAI()
 
 def s(message, model=GPT4):
 
     start_time = time.time()
+
+    message = message.strip()
     
     completion = client.chat.completions.create(
         messages=[
@@ -45,6 +49,11 @@ def s(message, model=GPT4):
 
     end_time = time.time()
     elapsed_time = end_time - start_time
+
+    history.append({
+        "prompt": message,
+        "response": completion.choices[0].message.content
+    })
 
     display(Markdown(completion.choices[0].message.content))
     print(f"(elapsed: {round(elapsed_time, 2)}sec)")
