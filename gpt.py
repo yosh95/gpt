@@ -43,7 +43,11 @@ INPUT_HISTORY = os.getenv(
         f"{os.path.expanduser('~')}/prompt_history.txt")
 SYSTEM_PROMPT = os.getenv("GPT_SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("GPT_USER_AGENT", "GPT_Tool")
-
+USE_STREAM = os.getenv("GPT_USE_STREAM", "True")
+if USE_STREAM == "True":
+    USE_STREAM = True
+else:
+    USE_STREAM = False
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -79,17 +83,21 @@ def _send(message, conversation, model):
         response = openai_client.chat.completions.create(
             model=model,
             messages=messages,
-            stream=True,
+            stream=USE_STREAM,
             timeout=DEFAULT_TIMEOUT_SEC
         )
 
         print(f"({model}): ", end="")
 
-        for chunk in response:
-            chunk_message = chunk.choices[0].delta.content
-            if chunk_message:
-                all_content += chunk_message
-                print(chunk_message, end="", flush=True)
+        if USE_STREAM:
+            for chunk in response:
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message:
+                    all_content += chunk_message
+                    print(chunk_message, end="", flush=True)
+        else:
+            all_content = response.choices[0].message.content
+            print(all_content, end="")
 
     except Exception as e:
         print(e)
