@@ -60,10 +60,6 @@ def _(event):
 def quit(event):
     event.app.exit(exception=EOFError)
 
-@kb.add('c-delete')
-def quit(event):
-    event.app.exit(exception=EOFError)
-
 
 def _send(message, conversation, model):
 
@@ -163,7 +159,8 @@ def talk(text, model, url=None):
         try:
             user_input = prompt('> ',
                                 history=history,
-                                key_bindings=kb)
+                                key_bindings=kb,
+                                enable_suspend=True)
             user_input = user_input.strip()
         except UnicodeDecodeError as e:
             print(e)
