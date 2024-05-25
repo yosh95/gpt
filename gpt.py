@@ -40,7 +40,7 @@ DEFAULT_PROMPT = os.getenv("GPT_DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
         "GPT_INPUT_HISTORY",
-        f"{os.path.expanduser('~')}/prompt_history.txt")
+        f"{os.path.expanduser('~')}/.gpt_prompt_history")
 SYSTEM_PROMPT = os.getenv("GPT_SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("GPT_USER_AGENT", "GPT_Tool")
 USE_STREAM = os.getenv("GPT_USE_STREAM", "True")
@@ -57,6 +57,10 @@ def _(event):
     event.current_buffer.insert_text('\n')
 
 @kb.add('escape')
+def quit(event):
+    event.app.exit(exception=EOFError)
+
+@kb.add('escape', 'backspace')
 def quit(event):
     event.app.exit(exception=EOFError)
 
