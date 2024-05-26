@@ -23,14 +23,8 @@ from pypdf import PdfReader
 load_dotenv()
 
 # OpenAI
-base_url = os.getenv("OPENAI_API_BASE_URL", None)
 api_key = os.getenv("OPENAI_API_KEY", "")
-if base_url is None:
-    openai_client = openai.OpenAI(api_key=api_key)
-else:
-    openai_client = openai.OpenAI(
-            base_url=base_url,
-            api_key=api_key)
+openai_client = openai.OpenAI(api_key=api_key)
 
 # Constants
 GPT4 = "gpt-4o"
@@ -43,11 +37,6 @@ INPUT_HISTORY = os.getenv(
         f"{os.path.expanduser('~')}/.gpt_prompt_history")
 SYSTEM_PROMPT = os.getenv("GPT_SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("GPT_USER_AGENT", "GPT_Tool")
-USE_STREAM = os.getenv("GPT_USE_STREAM", "True")
-if USE_STREAM == "True":
-    USE_STREAM = True
-else:
-    USE_STREAM = False
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -65,7 +54,7 @@ def quit(event):
     event.app.exit(exception=EOFError)
 
 
-def _send(message, conversation, model):
+def _send(message, conversation):
 
     if conversation is None:
         messages = []
@@ -81,23 +70,19 @@ def _send(message, conversation, model):
     all_content = ""
     try:
         response = openai_client.chat.completions.create(
-            model=model,
+            model=DEFAULT_MODEL,
             messages=messages,
-            stream=USE_STREAM,
+            stream=True,
             timeout=DEFAULT_TIMEOUT_SEC
         )
 
-        print(f"({model}): ", end="")
+        print(f"({DEFAULT_MODEL}): ", end="")
 
-        if USE_STREAM:
-            for chunk in response:
-                chunk_message = chunk.choices[0].delta.content
-                if chunk_message:
-                    all_content += chunk_message
-                    print(chunk_message, end="", flush=True)
-        else:
-            all_content = response.choices[0].message.content
-            print(all_content, end="")
+        for chunk in response:
+            chunk_message = chunk.choices[0].delta.content
+            if chunk_message:
+                all_content += chunk_message
+                print(chunk_message, end="", flush=True)
 
     except Exception as e:
         print(e)
@@ -142,12 +127,11 @@ def fetch_url_content(url):
 
 
 # Processing Functions
-def talk(text, model, url=None):
+def talk(text, url=None):
 
     buf = text
     chunk_size = DEFAULT_CHUNK_SIZE
     prmt = DEFAULT_PROMPT
-    model_save = model
 
     history = FileHistory(INPUT_HISTORY)
     conversation = deque()
@@ -178,7 +162,7 @@ def talk(text, model, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {model}")
+            print(f"Model: {DEfAULT_MODEL}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
@@ -220,7 +204,6 @@ def talk(text, model, url=None):
             buf = text
             chunk_size = DEFAULT_CHUNK_SIZE
             prmt = DEFAULT_PROMPT
-            model = model_save
             processed = 0
             print("Reset to the default.")
             continue
@@ -256,15 +239,6 @@ def talk(text, model, url=None):
                 print(f"NEW default prompt: {new_prompt}")
                 prmt = new_prompt
             continue
-        pattern = r'^\.(model|m)(=|\s)(.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            new_model = match.group(3)
-            if new_model != "":
-                print(f"PREVIOUS model: {model}")
-                print(f"NEW model: {new_model}")
-                model = new_model
-            continue
         if user_input in ['.o', '.open']:
             if url is None:
                 print("No url to open.")
@@ -279,9 +253,7 @@ def talk(text, model, url=None):
         pattern = r'^\.(read|r) (.+)$'
         match = re.search(pattern, user_input)
         if match:
-            read_and_process(
-                    source=match.group(2),
-                    model=model)
+            read_and_process(source=match.group(2))
             continue
         pattern = r'^\.(search|s) (.+)$'
         match = re.search(pattern, user_input)
@@ -296,7 +268,7 @@ def talk(text, model, url=None):
                 message = chunk
                 if prmt is not None:
                     message += "\n\n" + prmt
-                response = _send(message, None, model)
+                response = _send(message, None)
                 conversation.append(
                         {"role": "user",
                          "content": message})
@@ -309,7 +281,7 @@ def talk(text, model, url=None):
             else:
                 continue
         else:
-            response = _send(user_input, conversation, model)
+            response = _send(user_input, conversation)
             conversation.append(
                     {"role": "user",
                      "content": user_input})
@@ -319,28 +291,28 @@ def talk(text, model, url=None):
         print()
 
 
-def process_pdf(file_name, model):
+def process_pdf(file_name):
     with open(file_name, "rb") as fh:
         text = read_pdf(BytesIO(fh.read()))
 
     if text != '':
-        talk(text, model)
+        talk(text)
     else:
         print("Empty PDF.")
 
 
-def process_text(file_name, model):
+def process_text(file_name):
     with open(file_name, 'r', encoding='utf-8') as file:
         text = file.read()
         if text != '':
-            talk(text, model)
+            talk(text)
 
 
-def read_and_process(source, model=DEFAULT_MODEL):
+def read_and_process(source):
     if source.startswith("http"):
         text = fetch_url_content(source)
         if text is not None and text != '':
-            talk(text, model, url=source)
+            talk(text, url=source)
         else:
             print("Failed to read.")
             return False
@@ -349,11 +321,11 @@ def read_and_process(source, model=DEFAULT_MODEL):
     if os.path.exists(source):
         kind = filetype.guess(source)
         if kind and kind.extension == 'pdf':
-            process_pdf(source, model)
+            process_pdf(source)
         else:
-            process_text(source, model)
+            process_text(source)
     else:
-        _send(source, None, model)
+        _send(source, None)
         print()
 
     return True
@@ -363,9 +335,8 @@ def read_and_process(source, model=DEFAULT_MODEL):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="This GPT utility offers versatile "
-                    + "options for generating text with "
-                    + "different GPT models. You can "
-                    + "provide a source as either a URL, "
+                    + "options for generating text with GPT."
+                    + "You can provide a source as either a URL, "
                     + "a file path, or directly as a prompt.")
 
     parser.add_argument('source',
@@ -373,11 +344,6 @@ if __name__ == "__main__":
                         help="Specify the source for the prompt. "
                              + "Can be a URL, a file path, "
                              + "or a direct prompt text.")
-    parser.add_argument('-m',
-                        '--model',
-                        help="Choose the GPT model for text "
-                             + "generation.",
-                        default=DEFAULT_MODEL)
     parser.add_argument('-p',
                         '--prompt',
                         help="Specify a prompt that overrides "
@@ -390,6 +356,6 @@ if __name__ == "__main__":
         DEFAULT_PROMPT = args.prompt
 
     if args.source is None:
-        talk("", args.model)
+        talk("")
     else:
-        read_and_process(args.source, args.model)
+        read_and_process(args.source)
