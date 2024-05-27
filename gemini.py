@@ -2,16 +2,13 @@
 
 import argparse
 import filetype
-import google_search
 import google.generativeai as genai
-import json
 import os
 import re
 import requests
 import webbrowser
 
 from bs4 import BeautifulSoup
-from collections import deque
 from dotenv import load_dotenv
 from io import BytesIO
 from prompt_toolkit.history import FileHistory
@@ -41,7 +38,7 @@ if SYSTEM_PROMPT is None:
 else:
     model = genai.GenerativeModel(
         GEMINI,
-        system_instruction = [
+        system_instruction=[
             SYSTEM_PROMPT
         ],
     )
@@ -50,29 +47,26 @@ chat = model.start_chat()
 # prompt_toolkit
 kb = KeyBindings()
 
+
 @kb.add('escape', 'enter')
 def _(event):
     event.current_buffer.insert_text('\n')
 
+
 @kb.add('escape')
-def quit(event):
+def _(event):
     event.app.exit(exception=EOFError)
+
 
 @kb.add('escape', 'backspace')
-def quit(event):
+def _(event):
     event.app.exit(exception=EOFError)
 
 
-def _send(message, conversation):
-
-    if conversation is None:
-        messages = []
-    else:
-        messages = list(conversation)
+def _send(message):
 
     message = message.strip()
 
-    all_content = ""
     try:
         responses = chat.send_message(message, stream=True)
 
@@ -130,7 +124,6 @@ def talk(text, url=None):
     prmt = DEFAULT_PROMPT
 
     history = FileHistory(INPUT_HISTORY)
-    conversation = deque()
 
     processed = 0
 
@@ -163,40 +156,9 @@ def talk(text, url=None):
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
             print(f"Reading URL: {url}")
-            print(f"History size: {len(conversation)}")
             print(f"User Agent: {USER_AGENT}")
             continue
-        if user_input == '.raw':
-            if len(conversation) <= 1:
-                print("Nothing to show.")
-                continue
-            raw = None
-            for i in reversed(conversation):
-                if 'role' in i and i['role'] == 'user':
-                    raw = i['content']
-                    break
-            if raw is None:
-                print("Nothing to show.")
-                continue
-            print(raw)
-            continue
-        if user_input in ['.hist', '.history']:
-            print(json.dumps(list(conversation), indent=2, ensure_ascii=False))
-            continue
-        if user_input == '.pop':
-            before_size = len(conversation)
-            if before_size > 0:
-                popped = conversation.popleft()
-                print(popped)
-            after_size = len(conversation)
-            print(f"size before:{before_size}")
-            print(f"size after:{after_size}")
-            continue
-        if user_input == '.clear':
-            conversation.clear()
-            continue
         if user_input == '.reset':
-            conversation.clear()
             buf = text
             chunk_size = DEFAULT_CHUNK_SIZE
             prmt = DEFAULT_PROMPT
@@ -205,7 +167,7 @@ def talk(text, url=None):
             continue
         if user_input in ['.g', '.goto']:
             buf = text
-            print(f"Going to the first.")
+            print("Going to the first.")
             processed = 0
             continue
         pattern = r'^\.(goto|g) (\d+)$'
@@ -246,16 +208,6 @@ def talk(text, url=None):
         if match:
             webbrowser.open(match.group(2))
             continue
-        pattern = r'^\.(read|r) (.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            read_and_process(source=match.group(2))
-            continue
-        pattern = r'^\.(search|s) (.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            google_search.search(match.group(2))
-            continue
 
         if user_input == '':
             if len(buf) > 0:
@@ -264,14 +216,14 @@ def talk(text, url=None):
                 message = chunk
                 if prmt is not None:
                     message += "\n\n" + prmt
-                _send(message, None)
+                _send(message)
                 processed += chunk_size
                 if processed >= len(text):
                     processed = len(text)
             else:
                 continue
         else:
-            _send(user_input, conversation)
+            _send(user_input)
         print()
 
 
@@ -309,7 +261,7 @@ def read_and_process(source):
         else:
             process_text(source)
     else:
-        _send(source, None)
+        _send(source)
 
     return True
 

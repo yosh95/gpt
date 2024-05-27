@@ -41,20 +41,24 @@ USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
 # prompt_toolkit
 kb = KeyBindings()
 
+
 @kb.add('escape', 'enter')
 def _(event):
     event.current_buffer.insert_text('\n')
 
+
 @kb.add('c-delete')
-def quit(event):
+def _(event):
     event.app.exit(exception=EOFError)
+
 
 @kb.add('escape')
-def quit(event):
+def _(event):
     event.app.exit(exception=EOFError)
 
+
 @kb.add('escape', 'backspace')
-def quit(event):
+def _(event):
     event.app.exit(exception=EOFError)
 
 
@@ -213,7 +217,7 @@ def talk(text, url=None):
             continue
         if user_input in ['.g', '.goto']:
             buf = text
-            print(f"Going to the first.")
+            print("Going to the first.")
             processed = 0
             continue
         pattern = r'^\.(goto|g) (\d+)$'
