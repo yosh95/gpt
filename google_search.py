@@ -1,6 +1,5 @@
 import argparse
 import gpt
-import gemini
 import os
 import requests
 import urllib.parse
@@ -139,8 +138,7 @@ def search(search_term):
                 break
 
             print(f"URL: {result}")
-#            if gpt.read_and_process(result) is False:
-            if gemini.read_and_process(result) is False:
+            if gpt.read_and_process(result) is False:
                 prompt("Press the enter key to continue. ")
 
     return True
