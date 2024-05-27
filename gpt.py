@@ -45,6 +45,10 @@ kb = KeyBindings()
 def _(event):
     event.current_buffer.insert_text('\n')
 
+@kb.add('c-delete')
+def quit(event):
+    event.app.exit(exception=EOFError)
+
 @kb.add('escape')
 def quit(event):
     event.app.exit(exception=EOFError)
