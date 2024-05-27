@@ -162,7 +162,7 @@ def talk(text, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {DEfAULT_MODEL}")
+            print(f"Model: {DEFAULT_MODEL}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
