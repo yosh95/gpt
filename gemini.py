@@ -42,7 +42,6 @@ else:
             SYSTEM_PROMPT
         ],
     )
-chat = model.start_chat()
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -63,7 +62,7 @@ def _(event):
     event.app.exit(exception=EOFError)
 
 
-def _send(message):
+def _send(message, chat):
 
     message = message.strip()
 
@@ -118,6 +117,8 @@ def fetch_url_content(url):
 
 # Processing Functions
 def talk(text, url=None):
+
+    chat = model.start_chat()
 
     buf = text
     chunk_size = DEFAULT_CHUNK_SIZE
@@ -216,14 +217,14 @@ def talk(text, url=None):
                 message = chunk
                 if prmt is not None:
                     message += "\n\n" + prmt
-                _send(message)
+                _send(message, chat)
                 processed += chunk_size
                 if processed >= len(text):
                     processed = len(text)
             else:
                 continue
         else:
-            _send(user_input)
+            _send(user_input, chat)
         print()
 
 
@@ -261,7 +262,8 @@ def read_and_process(source):
         else:
             process_text(source)
     else:
-        _send(source)
+        chat = model.start_chat()
+        _send(source, chat)
 
     return True
 

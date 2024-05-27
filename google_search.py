@@ -1,4 +1,5 @@
 import argparse
+import gemini
 import gpt
 import os
 import requests
@@ -22,6 +23,7 @@ load_dotenv()
 USER_AGENT = os.getenv("USER_AGENT", None)
 API_KEY = os.getenv("GOOGLE_API_KEY", None)
 CSE_ID = os.getenv("GOOGLE_CSE_ID", None)
+LLM_FOR_SEARCH = os.getenv("LLM_FOR_SEARCH", "gpt")
 
 
 def select_list(title, explanation, items, default):
@@ -138,8 +140,12 @@ def search(search_term):
                 break
 
             print(f"URL: {result}")
-            if gpt.read_and_process(result) is False:
-                prompt("Press the enter key to continue. ")
+            if LLM_FOR_SEARCH == 'gpt':
+                if gpt.read_and_process(result) is False:
+                    prompt("Press the enter key to continue. ")
+            else:
+                if gemini.read_and_process(result) is False:
+                    prompt("Press the enter key to continue. ")
 
     return True
 
