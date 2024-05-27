@@ -28,15 +28,15 @@ openai_client = openai.OpenAI(api_key=api_key)
 
 # Constants
 GPT4 = "gpt-4o"
-DEFAULT_CHUNK_SIZE = int(os.getenv("GPT_DEFAULT_CHUNK_SIZE", 10000))
-DEFAULT_MODEL = os.getenv("GPT_DEFAULT_MODEL", GPT4)
-DEFAULT_PROMPT = os.getenv("GPT_DEFAULT_PROMPT", None)
+DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", GPT4)
+DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
-        "GPT_INPUT_HISTORY",
-        f"{os.path.expanduser('~')}/.gpt_prompt_history")
-SYSTEM_PROMPT = os.getenv("GPT_SYSTEM_PROMPT", None)
-USER_AGENT = os.getenv("GPT_USER_AGENT", "GPT_Tool")
+        "PROMPT_HISTORY",
+        f"{os.path.expanduser('~')}/.prompt_history")
+SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
+USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
 
 # prompt_toolkit
 kb = KeyBindings()

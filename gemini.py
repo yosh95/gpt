@@ -3,6 +3,7 @@
 import argparse
 import filetype
 import google_search
+import google.generativeai as genai
 import json
 import os
 import re
@@ -17,27 +18,28 @@ from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import prompt
 from pypdf import PdfReader
-from vertexai.generative_models import GenerativeModel
 
 # Rrad .env
 load_dotenv()
 
 # Constants
 GEMINI = "gemini-1.5-pro"
-DEFAULT_CHUNK_SIZE = int(os.getenv("GPT_DEFAULT_CHUNK_SIZE", 10000))
-DEFAULT_PROMPT = os.getenv("GEMINI_DEFAULT_PROMPT", None)
+API_KEY = os.getenv("GEMINI_API_KEY", None)
+DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
+DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
-        "GEMINI_INPUT_HISTORY",
-        f"{os.path.expanduser('~')}/.gemini_prompt_history")
-SYSTEM_PROMPT = os.getenv("GEMINI_SYSTEM_PROMPT", None)
-USER_AGENT = os.getenv("GEMINI_USER_AGENT", "GPT_Tool")
+        "PROMPT_HISTORY",
+        f"{os.path.expanduser('~')}/.prompt_history")
+SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
+USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
 
 # gemini
+genai.configure(api_key=API_KEY)
 if SYSTEM_PROMPT is None:
-    model = GenerativeModel(GEMINI)
+    model = genai.GenerativeModel(GEMINI)
 else:
-    model = GenerativeModel(
+    model = genai.GenerativeModel(
         GEMINI,
         system_instruction = [
             SYSTEM_PROMPT
