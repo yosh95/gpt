@@ -19,7 +19,7 @@ from prompt_toolkit.key_binding import KeyBindings
 from prompt_toolkit.shortcuts import prompt
 from pypdf import PdfReader
 
-# Rrad .env
+# Read .env
 load_dotenv()
 
 # OpenAI
@@ -207,14 +207,6 @@ def talk(text, url=None):
         if user_input == '.clear':
             conversation.clear()
             continue
-        if user_input == '.reset':
-            conversation.clear()
-            buf = text
-            chunk_size = DEFAULT_CHUNK_SIZE
-            prmt = DEFAULT_PROMPT
-            processed = 0
-            print("Reset to the default.")
-            continue
         if user_input in ['.g', '.goto']:
             buf = text
             print("Going to the first.")
@@ -252,16 +244,6 @@ def talk(text, url=None):
                 print("No url to open.")
             else:
                 webbrowser.open(url)
-            continue
-        pattern = r'^\.(open|o) (.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            webbrowser.open(match.group(2))
-            continue
-        pattern = r'^\.(read|r) (.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            read_and_process(source=match.group(2))
             continue
         pattern = r'^\.(search|s) (.+)$'
         match = re.search(pattern, user_input)
