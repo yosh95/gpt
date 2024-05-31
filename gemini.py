@@ -142,8 +142,6 @@ def talk(text, url=None):
 
     chat = model.start_chat()
 
-    raw = ''
-
     while True:
 
         if len(text) > 0:
@@ -175,8 +173,8 @@ def talk(text, url=None):
             print(f"Reading URL: {url}")
             print(f"User Agent: {USER_AGENT}")
             continue
-        if user_input == '.raw':
-            print(raw)
+        if user_input in ['.h', '.hist']:
+            print(chat.history)
             continue
         if user_input in ['.g', '.goto']:
             buf = text
