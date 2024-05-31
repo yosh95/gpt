@@ -231,7 +231,7 @@ def talk(text, url=None):
             print(f"chunk_size has been set to {chunk_size}")
             continue
         pattern = r'^\.(prompt|p)(=|\s)(.+)$'
-        match = re.search(pattern, user_input)
+        match = re.search(pattern, user_input, re.DOTALL)
         if match:
             new_prompt = match.group(3)
             if new_prompt != "":
