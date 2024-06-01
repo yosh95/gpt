@@ -22,12 +22,8 @@ from pypdf import PdfReader
 load_dotenv()
 
 # Constants
-#GEMINI = "gemini-1.5-pro-latest"
-#GEMINI = "gemini-1.5-pro"
-GEMINI = "gemini-1.5-flash-latest"
-#GEMINI = "gemini-1.5-flash"
 DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", GEMINI)
+DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-1.5-pro-latest")
 DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
@@ -40,9 +36,9 @@ USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
 api_key = os.getenv("GEMINI_API_KEY", "")
 genai.configure(api_key=api_key)
 if SYSTEM_PROMPT is None:
-    model = genai.GenerativeModel(GEMINI)
+    model = genai.GenerativeModel(DEFAULT_MODEL)
 else:
-    model = genai.GenerativeModel(GEMINI, system_instruction=SYSTEM_PROMPT)
+    model = genai.GenerativeModel(DEFAULT_MODEL, system_instruction=SYSTEM_PROMPT)
 
 # prompt_toolkit
 kb = KeyBindings()
