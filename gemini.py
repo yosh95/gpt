@@ -79,9 +79,6 @@ def _send(message, conversation):
 
     all_content = ''
     try:
-        print("====")
-        print(messages)
-        print("====")
         response = model.generate_content(messages, stream=True)
 
         print(f"({MODEL}): ", end="")
