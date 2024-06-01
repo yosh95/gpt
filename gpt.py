@@ -29,7 +29,7 @@ openai_client = openai.OpenAI(api_key=api_key)
 # Constants
 GPT4 = "gpt-4o"
 DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", GPT4)
+MODEL = os.getenv("GPT_MODEL", GPT4)
 DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
@@ -78,13 +78,13 @@ def _send(message, conversation):
     all_content = ""
     try:
         response = openai_client.chat.completions.create(
-            model=DEFAULT_MODEL,
+            model=MODEL,
             messages=messages,
             stream=True,
             timeout=DEFAULT_TIMEOUT_SEC
         )
 
-        print(f"({DEFAULT_MODEL}): ", end="")
+        print(f"({MODEL}): ", end="")
 
         for chunk in response:
             chunk_message = chunk.choices[0].delta.content
@@ -170,7 +170,7 @@ def talk(text, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {DEFAULT_MODEL}")
+            print(f"Model: {MODEL}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")

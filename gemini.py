@@ -23,7 +23,7 @@ load_dotenv()
 
 # Constants
 DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
-DEFAULT_MODEL = os.getenv("DEFAULT_MODEL", "gemini-1.5-pro-latest")
+MODEL = os.getenv("GEMINI_MODEL", "gemini-1.5-pro-latest")
 DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
@@ -36,9 +36,9 @@ USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
 api_key = os.getenv("GEMINI_API_KEY", "")
 genai.configure(api_key=api_key)
 if SYSTEM_PROMPT is None:
-    model = genai.GenerativeModel(DEFAULT_MODEL)
+    model = genai.GenerativeModel(MODEL)
 else:
-    model = genai.GenerativeModel(DEFAULT_MODEL, system_instruction=SYSTEM_PROMPT)
+    model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM_PROMPT)
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -75,7 +75,7 @@ def _send(message, chat):
         else:
             response = chat.send_message(message, stream=True)
 
-        print(f"({DEFAULT_MODEL}): ", end="")
+        print(f"({MODEL}): ", end="")
 
         for chunk in response:
             chunk_message = chunk.text
@@ -162,7 +162,7 @@ def talk(text, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {DEFAULT_MODEL}")
+            print(f"Model: {MODEL}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
