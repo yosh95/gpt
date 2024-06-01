@@ -162,7 +162,7 @@ def talk(text, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {MODEL}")
+            print(f"Model: {model.model_name}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
@@ -177,6 +177,9 @@ def talk(text, url=None):
             continue
         if user_input in ['.rewind']:
             chat.rewind()
+            continue
+        if user_input in ['.last']:
+            print(chat.last)
             continue
         if user_input in ['.g', '.goto']:
             buf = text
