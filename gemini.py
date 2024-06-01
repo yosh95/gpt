@@ -3,7 +3,6 @@
 import argparse
 import filetype
 import google.generativeai as genai
-import json
 import os
 import re
 import requests
@@ -12,6 +11,7 @@ import webbrowser
 from bs4 import BeautifulSoup
 from collections import deque
 from dotenv import load_dotenv
+from google.generativeai.types import content_types
 from io import BytesIO
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
@@ -30,7 +30,7 @@ INPUT_HISTORY = os.getenv(
         "PROMPT_HISTORY",
         f"{os.path.expanduser('~')}/.prompt_history")
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
-USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
+USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
 # Gemini
 api_key = os.getenv("GEMINI_API_KEY", "")
@@ -39,6 +39,7 @@ if SYSTEM_PROMPT is None:
     model = genai.GenerativeModel(MODEL)
 else:
     model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM_PROMPT)
+
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -64,16 +65,24 @@ def _(event):
     event.app.exit(exception=EOFError)
 
 
-def _send(message, chat):
+def _send(message, conversation):
+
+    if conversation is None:
+        messages = []
+    else:
+        messages = list(conversation)
 
     message = message.strip()
+    content = content_types.to_content(message)
+    content.role = 'user'
+    messages.append(content)
 
-    all_content = ""
+    all_content = ''
     try:
-        if chat is None:
-            response = model.generate_content(message, stream=True)
-        else:
-            response = chat.send_message(message, stream=True)
+        print("====")
+        print(messages)
+        print("====")
+        response = model.generate_content(messages, stream=True)
 
         print(f"({MODEL}): ", end="")
 
@@ -132,11 +141,10 @@ def talk(text, url=None):
     chunk_size = DEFAULT_CHUNK_SIZE
     prmt = DEFAULT_PROMPT
 
-    history = FileHistory(INPUT_HISTORY)
+    prompt_history = FileHistory(INPUT_HISTORY)
+    conversation = deque()
 
     processed = 0
-
-    chat = model.start_chat()
 
     while True:
 
@@ -146,7 +154,7 @@ def talk(text, url=None):
 
         try:
             user_input = prompt('> ',
-                                history=history,
+                                history=prompt_history,
                                 key_bindings=kb,
                                 enable_suspend=True)
             user_input = user_input.strip()
@@ -166,20 +174,15 @@ def talk(text, url=None):
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
+            print(f"History size: {len(conversation)}")
             print(f"Reading URL: {url}")
             print(f"User Agent: {USER_AGENT}")
             continue
         if user_input in ['.h', '.history']:
-            print(chat.history)
+            print(list(conversation))
             continue
-        if user_input in ['.reset']:
-            chat = model.start_chat()
-            continue
-        if user_input in ['.rewind']:
-            chat.rewind()
-            continue
-        if user_input in ['.last']:
-            print(chat.last)
+        if user_input == '.clear':
+            conversation.clear()
             continue
         if user_input in ['.g', '.goto']:
             buf = text
@@ -228,14 +231,26 @@ def talk(text, url=None):
                 if prmt is not None:
                     message += "\n\n" + prmt
                 response = _send(message, None)
+                content_user = content_types.to_content(message)
+                content_user.role = 'user'
+                conversation.append(content_user)
+                content_model = content_types.to_content(response)
+                content_model.role = 'model'
+                conversation.append(content_model)
                 processed += chunk_size
                 if processed >= len(text):
                     processed = len(text)
             else:
                 continue
         else:
-            response = _send(user_input, chat)
-        if response.endswith('\n') == False:
+            response = _send(user_input, conversation)
+            content_user = content_types.to_content(user_input)
+            content_user.role = 'user'
+            conversation.append(content_user)
+            content_model = content_types.to_content(response)
+            content_model.role = 'model'
+            conversation.append(content_model)
+        if response.endswith('\n') is False:
             print()
 
 
@@ -282,7 +297,7 @@ def read_and_process(source):
 # CLI Interface
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="This Gemini utility offers versatile "
+        description="This LLM utility offers versatile "
                     + "options for generating text with Gemini."
                     + "You can provide a source as either a URL, "
                     + "a file path, or directly as a prompt.")

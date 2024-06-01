@@ -29,6 +29,7 @@ else:
     import gpt
     search_helper = gpt
 
+
 def select_list(title, explanation, items, default):
 
     if items is None:
