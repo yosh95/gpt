@@ -65,6 +65,16 @@ def _(event):
     event.app.exit(exception=EOFError)
 
 
+@kb.add('f9')
+def _(event):
+    event.app.exit(exception=EOFError)
+
+
+@kb.add('f10')
+def _(event):
+    event.current_buffer.validate_and_handle()
+
+
 def _send(message, conversation):
 
     if conversation is None:
