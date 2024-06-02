@@ -94,7 +94,7 @@ def _send(message, conversation):
         print(f"({MODEL}): ", end="")
 
         for chunk in response:
-            chunk_message = chunk.text
+            chunk_message = chunk.candidates[0].content.parts[0].text
             if chunk_message:
                 all_content += chunk_message
                 print(chunk_message, end="", flush=True)
