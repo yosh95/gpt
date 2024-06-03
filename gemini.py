@@ -142,10 +142,13 @@ def fetch_url_content(url):
 
 
 # Processing Functions
-def talk(text, url=None):
+def talk(text, read_all=False, url=None):
 
     buf = text
-    chunk_size = DEFAULT_CHUNK_SIZE
+    if read_all is True:
+        chunk_size = len(text)
+    else:
+        chunk_size = DEFAULT_CHUNK_SIZE
     prmt = DEFAULT_PROMPT
 
     prompt_history = FileHistory(INPUT_HISTORY)
@@ -261,28 +264,28 @@ def talk(text, url=None):
             print()
 
 
-def process_pdf(file_name):
+def process_pdf(file_name, read_all):
     with open(file_name, "rb") as fh:
         text = read_pdf(BytesIO(fh.read()))
 
     if text != '':
-        talk(text)
+        talk(text, read_all)
     else:
         print("Empty PDF.")
 
 
-def process_text(file_name):
+def process_text(file_name, read_all):
     with open(file_name, 'r', encoding='utf-8') as file:
         text = file.read()
         if text != '':
-            talk(text)
+            talk(text, read_all)
 
 
-def read_and_process(source):
+def read_and_process(source, read_all):
     if source.startswith("http"):
         text = fetch_url_content(source)
         if text is not None and text != '':
-            talk(text, url=source)
+            talk(text, read_all, url=source)
         else:
             print("Failed to read.")
             return False
@@ -291,9 +294,9 @@ def read_and_process(source):
     if os.path.exists(source):
         kind = filetype.guess(source)
         if kind and kind.extension == 'pdf':
-            process_pdf(source)
+            process_pdf(source, read_all)
         else:
-            process_text(source)
+            process_text(source, read_all)
     else:
         _send(source, None)
         print()
@@ -314,6 +317,11 @@ if __name__ == "__main__":
                         help="Specify the source for the prompt. "
                              + "Can be a URL, a file path, "
                              + "or a direct prompt text.")
+    parser.add_argument('-a',
+                        '--all',
+                        action='store_true',
+                        help="This option overrides the default chunk size. "
+                             + "LLM uses the entire text data.")
     parser.add_argument('-p',
                         '--prompt',
                         help="Specify a prompt that overrides "
@@ -328,4 +336,4 @@ if __name__ == "__main__":
     if args.source is None:
         talk("")
     else:
-        read_and_process(args.source)
+        read_and_process(args.source, args.all)
