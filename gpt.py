@@ -2,10 +2,8 @@
 
 import argparse
 import filetype
-import google_search
-import json
-import os
 import openai
+import os
 import re
 import requests
 import webbrowser
@@ -22,21 +20,20 @@ from pypdf import PdfReader
 # Read .env
 load_dotenv()
 
-# OpenAI
-api_key = os.getenv("OPENAI_API_KEY", "")
-openai_client = openai.OpenAI(api_key=api_key)
-
 # Constants
-GPT4 = "gpt-4o"
 DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
-MODEL = os.getenv("GPT_MODEL", GPT4)
+MODEL = os.getenv("GPT_MODEL", "gpt-4o")
 DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
         "PROMPT_HISTORY",
         f"{os.path.expanduser('~')}/.prompt_history")
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
-USER_AGENT = os.getenv("USER_AGENT", "GPT_Tool")
+USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
+
+# OpenAI
+api_key = os.getenv("OPENAI_API_KEY", "")
+openai_client = openai.OpenAI(api_key=api_key)
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -85,7 +82,7 @@ def _send(message, conversation):
     message = message.strip()
     messages.append({"role": "user", "content": message})
 
-    all_content = ""
+    all_content = ''
     try:
         response = openai_client.chat.completions.create(
             model=MODEL,
@@ -145,13 +142,16 @@ def fetch_url_content(url):
 
 
 # Processing Functions
-def talk(text, url=None):
+def talk(text, read_all=False, url=None):
 
     buf = text
-    chunk_size = DEFAULT_CHUNK_SIZE
+    if read_all is True:
+        chunk_size = len(text)
+    else:
+        chunk_size = DEFAULT_CHUNK_SIZE
     prmt = DEFAULT_PROMPT
 
-    history = FileHistory(INPUT_HISTORY)
+    prompt_history = FileHistory(INPUT_HISTORY)
     conversation = deque()
 
     processed = 0
@@ -164,7 +164,7 @@ def talk(text, url=None):
 
         try:
             user_input = prompt('> ',
-                                history=history,
+                                history=prompt_history,
                                 key_bindings=kb,
                                 enable_suspend=True)
             user_input = user_input.strip()
@@ -184,35 +184,12 @@ def talk(text, url=None):
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
-            print(f"Reading URL: {url}")
             print(f"History size: {len(conversation)}")
+            print(f"Reading URL: {url}")
             print(f"User Agent: {USER_AGENT}")
             continue
-        if user_input == '.raw':
-            if len(conversation) <= 1:
-                print("Nothing to show.")
-                continue
-            raw = None
-            for i in reversed(conversation):
-                if 'role' in i and i['role'] == 'user':
-                    raw = i['content']
-                    break
-            if raw is None:
-                print("Nothing to show.")
-                continue
-            print(raw)
-            continue
-        if user_input in ['.hist', '.history']:
+        if user_input in ['.h', '.history']:
             print(json.dumps(list(conversation), indent=2, ensure_ascii=False))
-            continue
-        if user_input == '.pop':
-            before_size = len(conversation)
-            if before_size > 0:
-                popped = conversation.popleft()
-                print(popped)
-            after_size = len(conversation)
-            print(f"size before:{before_size}")
-            print(f"size after:{after_size}")
             continue
         if user_input == '.clear':
             conversation.clear()
@@ -255,11 +232,6 @@ def talk(text, url=None):
             else:
                 webbrowser.open(url)
             continue
-        pattern = r'^\.(search|s) (.+)$'
-        match = re.search(pattern, user_input)
-        if match:
-            google_search.search(match.group(2))
-            continue
 
         if user_input == '':
             if len(buf) > 0:
@@ -291,28 +263,28 @@ def talk(text, url=None):
         print()
 
 
-def process_pdf(file_name):
+def process_pdf(file_name, read_all):
     with open(file_name, "rb") as fh:
         text = read_pdf(BytesIO(fh.read()))
 
     if text != '':
-        talk(text)
+        talk(text, read_all)
     else:
         print("Empty PDF.")
 
 
-def process_text(file_name):
+def process_text(file_name, read_all):
     with open(file_name, 'r', encoding='utf-8') as file:
         text = file.read()
         if text != '':
-            talk(text)
+            talk(text, read_all)
 
 
-def read_and_process(source):
+def read_and_process(source, read_all):
     if source.startswith("http"):
         text = fetch_url_content(source)
         if text is not None and text != '':
-            talk(text, url=source)
+            talk(text, read_all, url=source)
         else:
             print("Failed to read.")
             return False
@@ -321,9 +293,9 @@ def read_and_process(source):
     if os.path.exists(source):
         kind = filetype.guess(source)
         if kind and kind.extension == 'pdf':
-            process_pdf(source)
+            process_pdf(source, read_all)
         else:
-            process_text(source)
+            process_text(source, read_all)
     else:
         _send(source, None)
         print()
@@ -334,7 +306,7 @@ def read_and_process(source):
 # CLI Interface
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        description="This GPT utility offers versatile "
+        description="This LLM utility offers versatile "
                     + "options for generating text with GPT."
                     + "You can provide a source as either a URL, "
                     + "a file path, or directly as a prompt.")
@@ -344,6 +316,11 @@ if __name__ == "__main__":
                         help="Specify the source for the prompt. "
                              + "Can be a URL, a file path, "
                              + "or a direct prompt text.")
+    parser.add_argument('-a',
+                        '--all',
+                        action='store_true',
+                        help="This option overrides the default chunk size. "
+                             + "LLM uses the entire text data.")
     parser.add_argument('-p',
                         '--prompt',
                         help="Specify a prompt that overrides "
@@ -358,4 +335,4 @@ if __name__ == "__main__":
     if args.source is None:
         talk("")
     else:
-        read_and_process(args.source)
+        read_and_process(args.source, args.all)
