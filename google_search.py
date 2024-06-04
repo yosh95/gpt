@@ -144,7 +144,7 @@ def search(search_term):
                 break
 
             print(f"URL: {result}")
-            if search_helper.read_and_process(result) is False:
+            if search_helper.read_and_process(result, False) is False:
                 prompt("Press the enter key to continue. ")
 
     return True
