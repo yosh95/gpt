@@ -2,6 +2,7 @@
 
 import argparse
 import filetype
+import json
 import openai
 import os
 import re
