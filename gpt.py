@@ -89,20 +89,25 @@ def _send(message, conversation):
             model=MODEL,
             messages=messages,
             stream=True,
+            stream_options={"include_usage": True},
             timeout=DEFAULT_TIMEOUT_SEC
         )
 
         print(f"({MODEL}): ", end="")
 
+        usage = None
         for chunk in response:
-            chunk_message = chunk.choices[0].delta.content
-            if chunk_message:
-                all_content += chunk_message
-                print(chunk_message, end="", flush=True)
+            if len(chunk.choices) > 0:
+                chunk_message = chunk.choices[0].delta.content
+                if chunk_message:
+                    all_content += chunk_message
+                    print(chunk_message, end="", flush=True)
+            if chunk.usage is not None:
+                usage = chunk.usage
 
     except Exception as e:
         print(e)
-    return all_content
+    return all_content, usage
 
 
 def read_pdf(byte_stream):
@@ -157,6 +162,8 @@ def talk(text, read_all=False, url=None):
 
     processed = 0
 
+    usage = None
+
     while True:
 
         if len(text) > 0:
@@ -188,6 +195,7 @@ def talk(text, read_all=False, url=None):
             print(f"History size: {len(conversation)}")
             print(f"Reading URL: {url}")
             print(f"User Agent: {USER_AGENT}")
+            print(f"Last usage: {usage}")
             continue
         if user_input in ['.h', '.history']:
             print(json.dumps(list(conversation), indent=2, ensure_ascii=False))
@@ -241,7 +249,7 @@ def talk(text, read_all=False, url=None):
                 message = chunk
                 if prmt is not None:
                     message += "\n\n" + prmt
-                response = _send(message, None)
+                response, usage = _send(message, None)
                 conversation.append(
                         {"role": "user",
                          "content": message})
@@ -254,7 +262,7 @@ def talk(text, read_all=False, url=None):
             else:
                 continue
         else:
-            response = _send(user_input, conversation)
+            response, usage = _send(user_input, conversation)
             conversation.append(
                     {"role": "user",
                      "content": user_input})
