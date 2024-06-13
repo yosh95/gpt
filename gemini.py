@@ -2,7 +2,7 @@
 
 import argparse
 import filetype
-import google.generativeai as genai
+import json
 import os
 import re
 import requests
@@ -11,7 +11,6 @@ import webbrowser
 from bs4 import BeautifulSoup
 from collections import deque
 from dotenv import load_dotenv
-from google.generativeai.types import content_types
 from io import BytesIO
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.key_binding import KeyBindings
@@ -33,13 +32,9 @@ SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
 # Gemini
-api_key = os.getenv("GEMINI_API_KEY", "")
-genai.configure(api_key=api_key)
-if SYSTEM_PROMPT is None:
-    model = genai.GenerativeModel(MODEL)
-else:
-    model = genai.GenerativeModel(MODEL, system_instruction=SYSTEM_PROMPT)
-
+API_KEY = os.getenv("GEMINI_API_KEY", "")
+API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/" \
+           + MODEL + ":generateContent?key=" + API_KEY
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -82,26 +77,46 @@ def _send(message, conversation):
     else:
         messages = list(conversation)
 
-    message = message.strip()
-    content = content_types.to_content(message)
-    content.role = 'user'
-    messages.append(content)
+    if conversation is None:
+        messages = []
+    else:
+        messages = list(conversation)
 
-    all_content = ''
+    message = message.strip()
+    messages.append({"role": "user", "parts": [{"text":message}]})
+
+    content = ''
     try:
-        response = model.generate_content(messages, stream=True)
+        headers = {
+            'Content-Type': 'application/json',
+        }
+
+        data = {
+            'contents': messages
+        }
+        if SYSTEM_PROMPT is not None:
+            data['system_instruction'] = {
+                'parts': [{
+                    'text': SYSTEM_PROMPT
+                }]
+            }
+
+        content = ''
+
+        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+
+        result = response.json()
+
+        content = result['candidates'][0]['content']['parts'][0]['text']
 
         print(f"({MODEL}): ", end="")
 
-        for chunk in response:
-            chunk_message = chunk.candidates[0].content.parts[0].text
-            if chunk_message:
-                all_content += chunk_message
-                print(chunk_message, end="", flush=True)
+        print(content, end="")
 
     except Exception as e:
         print(e)
-    return all_content
+    return content
 
 
 def read_pdf(byte_stream):
@@ -241,12 +256,8 @@ def talk(text, read_all=False, url=None):
                 if prmt is not None:
                     message += "\n\n" + prmt
                 response = _send(message, None)
-                content_user = content_types.to_content(message)
-                content_user.role = 'user'
-                conversation.append(content_user)
-                content_model = content_types.to_content(response)
-                content_model.role = 'model'
-                conversation.append(content_model)
+                conversation.append({"role": "user", "parts": [{"text":message}]})
+                conversation.append({"role": "model", "parts": [{"text":response}]})
                 processed += chunk_size
                 if processed >= len(text):
                     processed = len(text)
@@ -254,12 +265,8 @@ def talk(text, read_all=False, url=None):
                 continue
         else:
             response = _send(user_input, conversation)
-            content_user = content_types.to_content(user_input)
-            content_user.role = 'user'
-            conversation.append(content_user)
-            content_model = content_types.to_content(response)
-            content_model.role = 'model'
-            conversation.append(content_model)
+            conversation.append({"role": "user", "parts": [{"text":user_input}]})
+            conversation.append({"role": "model", "parts": [{"text":response}]})
         if response.endswith('\n') is False:
             print()
 

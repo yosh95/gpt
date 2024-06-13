@@ -1,8 +1,0 @@
-beautifulsoup4
-cryptography
-filetype
-openai
-prompt_toolkit
-pypdf
-python-dotenv
-requests

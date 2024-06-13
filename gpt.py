@@ -3,7 +3,6 @@
 import argparse
 import filetype
 import json
-import openai
 import os
 import re
 import requests
@@ -22,6 +21,7 @@ from pypdf import PdfReader
 load_dotenv()
 
 # Constants
+API_URL = 'https://api.openai.com/v1/chat/completions'
 DEFAULT_CHUNK_SIZE = int(os.getenv("DEFAULT_CHUNK_SIZE", 10000))
 MODEL = os.getenv("GPT_MODEL", "gpt-4o")
 DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
@@ -33,8 +33,7 @@ SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
 # OpenAI
-api_key = os.getenv("OPENAI_API_KEY", "")
-openai_client = openai.OpenAI(api_key=api_key)
+API_KEY = os.getenv("OPENAI_API_KEY", "")
 
 # prompt_toolkit
 kb = KeyBindings()
@@ -83,31 +82,34 @@ def _send(message, conversation):
     message = message.strip()
     messages.append({"role": "user", "content": message})
 
-    all_content = ''
     try:
-        response = openai_client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            stream=True,
-            stream_options={"include_usage": True},
-            timeout=DEFAULT_TIMEOUT_SEC
-        )
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {API_KEY}',
+        }
+
+        data = {
+            'model': MODEL,
+            'messages': messages,
+        }
+
+        content = ''
+
+        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+
+        result = response.json()
 
         print(f"({MODEL}): ", end="")
 
-        usage = None
-        for chunk in response:
-            if len(chunk.choices) > 0:
-                chunk_message = chunk.choices[0].delta.content
-                if chunk_message:
-                    all_content += chunk_message
-                    print(chunk_message, end="", flush=True)
-            if chunk.usage is not None:
-                usage = chunk.usage
+        content = result['choices'][0]['message']['content']
+        print(content, end="")
+
+        usage = result['usage']
 
     except Exception as e:
         print(e)
-    return all_content, usage
+    return content, usage
 
 
 def read_pdf(byte_stream):
