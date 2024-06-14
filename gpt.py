@@ -192,7 +192,7 @@ def fetch_url_content(url):
         response.raise_for_status()
     except Exception as e:
         print(e)
-        return
+        return None, None
 
     content_type = response.headers['Content-Type']
 
@@ -357,6 +357,9 @@ def process_text(file_name, read_all):
 def read_and_process(source, read_all):
     if source.startswith("http"):
         text, content_type = fetch_url_content(source)
+        if text is None:
+            print("Failed to read.")
+            return False
         if 'image/' not in content_type:
             if text is not None and text != '':
                 talk(text, read_all, url=source)
