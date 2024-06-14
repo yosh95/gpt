@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import argparse
+import base64
 import filetype
 import json
 import os
@@ -112,6 +113,66 @@ def _send(message, conversation):
     return content, usage
 
 
+def _send_image(message, image_url):
+
+    #print(f"message:{message}¥nimage_url:{image_url}")
+
+    messages = []
+
+    if SYSTEM_PROMPT is not None:
+        messages.append({"role": "system", "content": SYSTEM_PROMPT})
+
+    messages.append({
+        "role": "user",
+        "content": [
+            {
+                "type": "text",
+                "text": message
+            },
+            {
+                "type": "image_url",
+                "image_url": {
+                    "url": image_url
+                }
+            }
+        ]
+    })
+
+    try:
+        headers = {
+            'Content-Type': 'application/json',
+            'Authorization': f'Bearer {API_KEY}',
+        }
+
+        data = {
+            'model': MODEL,
+            'messages': messages,
+        }
+
+        content = ''
+
+        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response.raise_for_status()
+
+        result = response.json()
+
+        print(f"({MODEL}): ", end="")
+
+        content = result['choices'][0]['message']['content']
+        print(content, end="")
+
+        usage = result['usage']
+
+    except Exception as e:
+        print(e)
+    return content, usage
+
+
+def encode_image(image_path):
+  with open(image_path, "rb") as image_file:
+    return base64.b64encode(image_file.read()).decode('utf-8')
+
+
 def read_pdf(byte_stream):
 
     reader = PdfReader(byte_stream)
@@ -138,15 +199,17 @@ def fetch_url_content(url):
     content = response.content
 
     if 'application/pdf' in content_type:
-        return read_pdf(BytesIO(content))
+        return read_pdf(BytesIO(content)), content_type
     elif 'text/html' in content_type:
         soup = BeautifulSoup(content, 'html.parser')
-        return soup.get_text(' ', strip=True)
+        return soup.get_text(' ', strip=True), content_type
     elif 'text/plain' in content_type:
-        return content.decode('utf-8')
+        return content.decode('utf-8'), content_type
+    elif 'image/' in content_type:
+        return base64.b64encode(BytesIO(content).read()).decode('utf-8'), content_type
     else:
         print(f"Unavailable content type: {content_type}")
-        return None
+        return None, None
 
 
 # Processing Functions
@@ -293,18 +356,29 @@ def process_text(file_name, read_all):
 
 def read_and_process(source, read_all):
     if source.startswith("http"):
-        text = fetch_url_content(source)
-        if text is not None and text != '':
-            talk(text, read_all, url=source)
+        text, content_type = fetch_url_content(source)
+        if 'image/' not in content_type:
+            if text is not None and text != '':
+                talk(text, read_all, url=source)
+            else:
+                print("Failed to read.")
+                return False
         else:
-            print("Failed to read.")
-            return False
+            image_url = f"data:{content_type};base64,{text}"
+            response, usage = _send_image(DEFAULT_PROMPT, image_url)
+            print(f"\n{usage}")
+
         return True
 
     if os.path.exists(source):
         kind = filetype.guess(source)
         if kind and kind.extension == 'pdf':
             process_pdf(source, read_all)
+        elif 'image/' in kind.mime:
+            base64_image = encode_image(source)
+            image_url = f"data:{kind.mime};base64,{base64_image}"
+            response, usage = _send_image(DEFAULT_PROMPT, image_url)
+            print(f"\n{usage}")
         else:
             process_text(source, read_all)
     else:
