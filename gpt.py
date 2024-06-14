@@ -110,6 +110,7 @@ def _send(message, conversation):
 
     except Exception as e:
         print(e)
+        return None, None
     return content, usage
 
 
@@ -165,6 +166,7 @@ def _send_image(message, image_url):
 
     except Exception as e:
         print(e)
+        return None, None
     return content, usage
 
 
@@ -315,23 +317,23 @@ def talk(text, read_all=False, url=None):
                 if prmt is not None:
                     message += "\n\n" + prmt
                 response, usage = _send(message, None)
-                conversation.append(
-                        {"role": "user",
-                         "content": message})
-                conversation.append(
-                        {"role": "assistant",
-                         "content": response})
-                processed += chunk_size
-                if processed >= len(text):
-                    processed = len(text)
+                if response is not None:
+                    conversation.append(
+                        {"role": "user", "content": message})
+                    conversation.append(
+                        {"role": "assistant", "content": response})
+                    processed += chunk_size
+                    if processed >= len(text):
+                        processed = len(text)
             else:
                 continue
         else:
             response, usage = _send(user_input, conversation)
-            conversation.append(
+            if response is not None:
+                conversation.append(
                     {"role": "user",
                      "content": user_input})
-            conversation.append(
+                conversation.append(
                     {"role": "assistant",
                      "content": response})
         print()
