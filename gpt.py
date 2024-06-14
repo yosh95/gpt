@@ -374,7 +374,7 @@ def read_and_process(source, read_all):
         kind = filetype.guess(source)
         if kind and kind.extension == 'pdf':
             process_pdf(source, read_all)
-        elif 'image/' in kind.mime:
+        elif kind and 'image/' in kind.mime:
             base64_image = encode_image(source)
             image_url = f"data:{kind.mime};base64,{base64_image}"
             response, usage = _send_image(DEFAULT_PROMPT, image_url)
