@@ -305,8 +305,9 @@ def read_and_process(source, read_all):
         else:
             process_text(source, read_all)
     else:
-        _send(source, None)
-        print()
+        response = _send(source, None)
+        if response.endswith('\n') is False:
+            print()
 
     return True
 
