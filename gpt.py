@@ -96,7 +96,9 @@ def _send(message, conversation):
 
         content = ''
 
-        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response = requests.post(API_URL,
+                                 headers=headers,
+                                 data=json.dumps(data))
         response.raise_for_status()
 
         result = response.json()
@@ -115,8 +117,6 @@ def _send(message, conversation):
 
 
 def _send_image(message, image_url):
-
-    #print(f"message:{message}¥nimage_url:{image_url}")
 
     messages = []
 
@@ -152,7 +152,9 @@ def _send_image(message, image_url):
 
         content = ''
 
-        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response = requests.post(API_URL,
+                                 headers=headers,
+                                 data=json.dumps(data))
         response.raise_for_status()
 
         result = response.json()
@@ -171,8 +173,8 @@ def _send_image(message, image_url):
 
 
 def encode_image(image_path):
-  with open(image_path, "rb") as image_file:
-    return base64.b64encode(image_file.read()).decode('utf-8')
+    with open(image_path, "rb") as image_file:
+        return base64.b64encode(image_file.read()).decode('utf-8')
 
 
 def read_pdf(byte_stream):
@@ -208,7 +210,8 @@ def fetch_url_content(url):
     elif 'text/plain' in content_type:
         return content.decode('utf-8'), content_type
     elif 'image/' in content_type:
-        return base64.b64encode(BytesIO(content).read()).decode('utf-8'), content_type
+        return base64.b64encode(
+            BytesIO(content).read()).decode('utf-8'), content_type
     else:
         print(f"Unavailable content type: {content_type}")
         return None, None

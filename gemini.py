@@ -33,7 +33,7 @@ USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
 # Gemini
 API_KEY = os.getenv("GEMINI_API_KEY", "")
-API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/" \
+API_URL = "https://generativelanguage.googleapis.com/v1beta/models/" \
            + MODEL + ":generateContent?key=" + API_KEY
 
 # prompt_toolkit
@@ -83,7 +83,7 @@ def _send(message, conversation):
         messages = list(conversation)
 
     message = message.strip()
-    messages.append({"role": "user", "parts": [{"text":message}]})
+    messages.append({"role": "user", "parts": [{"text": message}]})
 
     content = ''
     try:
@@ -103,7 +103,9 @@ def _send(message, conversation):
 
         content = ''
 
-        response = requests.post(API_URL, headers=headers, data=json.dumps(data))
+        response = requests.post(API_URL,
+                                 headers=headers,
+                                 data=json.dumps(data))
         response.raise_for_status()
 
         result = response.json()
@@ -195,7 +197,7 @@ def talk(text, read_all=False, url=None):
         if user_input in ['.q', '.quit']:
             break
         if user_input in ['.i', '.info']:
-            print(f"Model: {model.model_name}")
+            print(f"Model: {MODEL}")
             print(f"Chunk size: {chunk_size}")
             print(f"Default prompt: {prmt}")
             print(f"System prompt: {SYSTEM_PROMPT}")
@@ -256,8 +258,10 @@ def talk(text, read_all=False, url=None):
                 if prmt is not None:
                     message += "\n\n" + prmt
                 response = _send(message, None)
-                conversation.append({"role": "user", "parts": [{"text":message}]})
-                conversation.append({"role": "model", "parts": [{"text":response}]})
+                conversation.append({"role": "user",
+                                     "parts": [{"text": message}]})
+                conversation.append({"role": "model",
+                                     "parts": [{"text": response}]})
                 processed += chunk_size
                 if processed >= len(text):
                     processed = len(text)
@@ -265,8 +269,10 @@ def talk(text, read_all=False, url=None):
                 continue
         else:
             response = _send(user_input, conversation)
-            conversation.append({"role": "user", "parts": [{"text":user_input}]})
-            conversation.append({"role": "model", "parts": [{"text":response}]})
+            conversation.append({"role": "user",
+                                 "parts": [{"text": user_input}]})
+            conversation.append({"role": "model",
+                                 "parts": [{"text": response}]})
         if response.endswith('\n') is False:
             print()
 
