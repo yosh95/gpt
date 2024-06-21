@@ -59,4 +59,4 @@ if __name__ == "__main__":
                         help="Specify prompt for the image generation.")
     args = parser.parse_args()
 
-    _send(args.source)
+    _send(args.prompt)
