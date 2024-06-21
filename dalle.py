@@ -4,6 +4,7 @@ import argparse
 import json
 import os
 import requests
+import webbrowser
 
 from dotenv import load_dotenv
 
@@ -43,8 +44,11 @@ def _send(message):
         print(f"({MODEL}): ", end="")
 
         print(result['data'][0]['revised_prompt'])
-        print("")
-        print(result['data'][0]['url'])
+        print("---")
+        url = result['data'][0]['url']
+        print(url)
+        if url is not None and url != "":
+            webbrowser.open(url)
 
     except Exception as e:
         print(e)
