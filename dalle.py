@@ -55,7 +55,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Image generation utility.")
 
-    parser.add_argument('source',
+    parser.add_argument('prompt',
                         help="Specify prompt for the image generation.")
     args = parser.parse_args()
 
