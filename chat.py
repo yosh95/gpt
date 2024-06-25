@@ -43,19 +43,19 @@ class Chat():
         self.MODEL = model
 
     @kb.add('escape', 'enter')
-    def _(self, event):
+    def _(event):
         event.current_buffer.insert_text('\n')
 
     @kb.add('c-delete')
-    def _(self, event):
+    def _(event):
         event.app.exit(exception=EOFError)
 
     @kb.add('escape')
-    def _(self, event):
+    def _(event):
         event.app.exit(exception=EOFError)
 
     @kb.add('escape', 'backspace')
-    def _(self, event):
+    def _(event):
         event.app.exit(exception=EOFError)
 
     def encode_image(self, image_path):
