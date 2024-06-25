@@ -24,10 +24,10 @@ CSE_ID = os.getenv("GOOGLE_CSE_ID", None)
 HELPER_CLASS = os.getenv("SEARCH_HELPER", "gemini")
 if HELPER_CLASS == "gemini":
     import gemini
-    search_helper = gemini
+    search_helper = gemini.Gemini(os.getenv("GEMINI_MODEL"))
 else:
     import gpt
-    search_helper = gpt
+    search_helper = gpt.GPT(os.getenv("GPT_MODEL"))
 
 
 def select_list(title, explanation, items, default):
