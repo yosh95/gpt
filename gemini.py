@@ -43,8 +43,6 @@ class Gemini(chat.Chat):
                     }]
                 }
 
-            content = ''
-
             response = requests.post(API_URL,
                                      headers=headers,
                                      data=json.dumps(data))
@@ -54,6 +52,8 @@ class Gemini(chat.Chat):
 
             content = result['candidates'][0]['content']['parts'][0]['text']
             content = content.rstrip(" \n")
+            if content.startswith("'content'"):  # for debug
+                print(content) # for debug
             model_message = {"role": "model", "parts": [{"text": content}]}
 
             print(f"({MODEL}): ", end="")
