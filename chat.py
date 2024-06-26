@@ -264,7 +264,7 @@ class Chat():
             else:
                 self.process_text(source, read_all)
         else:
-            self._send(source, conversation, False)
+            self._send(source, None, False)
             print()
 
         return True
