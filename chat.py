@@ -117,7 +117,14 @@ class Chat():
 
         usage = None
 
+        empty_count = 0
+
+        user_input = ''
+
         while True:
+
+            if user_input != '':
+                empty_count = 0
 
             if len(text) > 0:
                 pct = processed / len(text) * 100
@@ -208,7 +215,12 @@ class Chat():
                         processed += chunk_size
                         if processed >= len(text):
                             processed = len(text)
+                    empty_count = 0
+                elif empty_count >= 1:
+                    break
                 else:
+                    empty_count += 1
+                    print("(Press Enter again to exit.)")
                     continue
             else:
                 self._send(user_input, conversation, True)
