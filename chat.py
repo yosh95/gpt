@@ -27,7 +27,10 @@ DEFAULT_PROMPT = os.getenv("DEFAULT_PROMPT", None)
 DEFAULT_TIMEOUT_SEC = 30
 INPUT_HISTORY = os.getenv(
         "PROMPT_HISTORY",
-        f"{os.path.expanduser('~')}/.prompt_history")
+        f"{os.path.expanduser('~')}/.chat_prompt_history")
+OUTPUT_HISTORY = os.getenv(
+        "OUTPUT_HISTORY",
+        f"{os.path.expanduser('~')}/.chat_history")
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
@@ -99,6 +102,16 @@ class Chat():
         else:
             print(f"Unavailable content type: {content_type}")
             return None, None
+
+    # Write chat to a file
+    def write_output(self, user_input, model_output):
+        with open(OUTPUT_HISTORY, 'a') as file:
+            file.write('### (user)\n')
+            file.write(f"{user_input}\n")
+            file.write('\n')
+            file.write(f"### ({self.MODEL})\n")
+            file.write(f"{model_output}\n")
+            file.write('\n')
 
     # Processing Functions
     def talk(self, text, read_all=False, url=None):
@@ -211,6 +224,7 @@ class Chat():
                     if prmt is not None:
                         message += "\n\n" + prmt
                     response, usage = self._send(message, conversation, False)
+                    self.write_output(message, response)
                     if response is not None:
                         processed += chunk_size
                         if processed >= len(text):
@@ -223,7 +237,8 @@ class Chat():
                     print("(Press Enter again to exit.)")
                     continue
             else:
-                self._send(user_input, conversation, True)
+                response, usage = self._send(user_input, conversation, True)
+                self.write_output(user_input, response)
             print()
 
     def process_pdf(self, file_name, read_all):
@@ -256,6 +271,7 @@ class Chat():
             else:
                 response, usage = self._send_image(
                     DEFAULT_PROMPT, content_type, text)
+                self.write_output(DEFAULT_PROMPT, response)
                 if usage is not None:
                     print(f"\n{usage}", end="")
                 print("")
@@ -270,13 +286,15 @@ class Chat():
                 base64_image = self.encode_image(source)
                 response, usage = self._send_image(
                     DEFAULT_PROMPT, kind.mime, base64_image)
+                self.write_output(DEFAULT_PROMPT, response)
                 if usage is not None:
                     print(f"\n{usage}", end="")
                 print("")
             else:
                 self.process_text(source, read_all)
         else:
-            self._send(source, None, False)
+            response, usage = self._send(source, None, False)
+            self.write_output(source, response)
             print()
 
         return True
