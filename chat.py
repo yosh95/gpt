@@ -105,7 +105,7 @@ class Chat():
 
     # Write chat to a file
     def write_output(self, user_input, model_output):
-        with open(OUTPUT_HISTORY, 'a') as file:
+        with open(OUTPUT_HISTORY, 'a', encoding='utf-8') as file:
             file.write('### (user)\n')
             file.write(f"{user_input}\n")
             file.write('\n')
