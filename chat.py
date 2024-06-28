@@ -144,6 +144,7 @@ class Chat():
                 print(f"({processed:,}/{len(text):,})({pct:.2f}%)")
 
             try:
+                print("----")
                 user_input = prompt('> ',
                                     history=prompt_history,
                                     key_bindings=kb,
