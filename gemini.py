@@ -60,6 +60,8 @@ class Gemini(chat.Chat):
 
             print(content, end="")
 
+            usage = result['usageMetadata']
+
             if conversation is not None:
                 conversation.append(user_message)
                 conversation.append(model_message)
@@ -67,7 +69,7 @@ class Gemini(chat.Chat):
         except Exception as e:
             print(e)
             return None, None
-        return content, None
+        return content, usage
 
     def _send_image(self, message, mime_type, base64_image):
 
@@ -98,13 +100,13 @@ class Gemini(chat.Chat):
 
             content = ''
 
-            print(json.dumps(data, indent=2))
             response = requests.post(API_URL,
                                      headers=headers,
                                      data=json.dumps(data))
             response.raise_for_status()
 
             result = response.json()
+            print(json.dumps(result, indent=2))
 
             content = result['candidates'][0]['content']['parts'][0]['text']
             content = content.rstrip(" \n")
