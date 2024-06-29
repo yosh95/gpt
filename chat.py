@@ -220,13 +220,13 @@ class Chat():
             if user_input == '':
                 if len(buf) > 0:
                     chunk = buf[:chunk_size]
-                    buf = buf[len(chunk):]
                     message = chunk
                     if prmt is not None:
                         message += "\n\n" + prmt
                     response, usage = self._send(message, conversation, False)
                     self.write_output(message, response)
                     if response is not None:
+                        buf = buf[len(chunk):]
                         processed += chunk_size
                         if processed >= len(text):
                             processed = len(text)
