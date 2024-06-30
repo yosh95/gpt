@@ -150,11 +150,11 @@ This Python script provides a command-line interface for web searches using Goog
 
 1. Run the script from the command line:
    ```bash
-   python web_search.py <query keywords>
+   python google_search.py <query keywords>
    ```
    For example:
    ```bash
-   python web_search.py "best restaurants in New York"
+   python google_search.py "best restaurants in New York"
    ```
 
 2. The script will display the search results and prompt you to select one.
