@@ -33,8 +33,14 @@ pip install requests filetype pypdf beautifulsoup4 prompt-toolkit dotenv
 
 2. **Run the script:**
 
+   - Gemini
    ```bash
-   python llm_chat_tool.py
+   python gemini.py
+   ```
+
+   - GPT
+   ```bash
+   python gpt.py
    ```
 
 3. **Interact with the LLM:**
@@ -58,16 +64,24 @@ pip install requests filetype pypdf beautifulsoup4 prompt-toolkit dotenv
 
 ```bash
 # Run the script with a text file
-python llm_chat_tool.py my_file.txt
+python gemini.py my_file.txt
+# or
+python gpt.py my_file.txt
 
 # Run the script with a URL
-python llm_chat_tool.py https://www.example.com
+python gemini.py https://www.example.com
+# or
+python gpt.py https://www.example.com
 
 # Run the script with a direct prompt and override the default prompt
-python llm_chat_tool.py "What is the meaning of life?" -p "Please answer the question in a philosophical way."
+python gemini.py "What is the meaning of life?" -p "Please answer the question in a philosophical way."
+# of
+python gpt.py "What is the meaning of life?" -p "Please answer the question in a philosophical way."
 
 # Run the script and set the chunk size to 5000
-python llm_chat_tool.py -c 5000
+python gemini.py article.txt -c 5000
+# or
+python gemini.py article.txt -c 5000
 ```
 
 ## Configuration
