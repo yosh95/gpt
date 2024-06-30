@@ -106,7 +106,6 @@ class Gemini(chat.Chat):
             response.raise_for_status()
 
             result = response.json()
-            print(json.dumps(result, indent=2))
 
             content = result['candidates'][0]['content']['parts'][0]['text']
             content = content.rstrip(" \n")
