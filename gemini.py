@@ -46,6 +46,9 @@ class Gemini(chat.Chat):
             response = requests.post(API_URL,
                                      headers=headers,
                                      data=json.dumps(data))
+
+            self.write_request_debug_log(headers, data, response)
+
             response.raise_for_status()
 
             result = response.json()
@@ -103,6 +106,9 @@ class Gemini(chat.Chat):
             response = requests.post(API_URL,
                                      headers=headers,
                                      data=json.dumps(data))
+
+            self.write_request_debug_log(headers, data, response)
+
             response.raise_for_status()
 
             result = response.json()

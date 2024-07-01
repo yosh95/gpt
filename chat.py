@@ -31,6 +31,9 @@ INPUT_HISTORY = os.getenv(
 OUTPUT_HISTORY = os.getenv(
         "OUTPUT_HISTORY",
         f"{os.path.expanduser('~')}/.chat_history")
+REQUEST_DEBUG_LOG = os.getenv(
+        "REQUEST_DEBUG_LOG",
+        f"{os.path.expanduser('~')}/.chat_request_debug_log")
 SYSTEM_PROMPT = os.getenv("SYSTEM_PROMPT", None)
 USER_AGENT = os.getenv("USER_AGENT", "LLM_Chat_Tool")
 
@@ -111,6 +114,20 @@ class Chat():
             file.write('\n')
             file.write(f"--- ({self.MODEL})\n")
             file.write(f"{model_output}\n")
+            file.write('\n')
+
+    # Write a request debug log
+    def write_request_debug_log(self, headers, data, response):
+        with open(REQUEST_DEBUG_LOG, 'w', encoding='utf-8') as file:
+            file.write('--- (request) ---\n')
+            file.write(f"headers: {json.dumps(headers, indent=2)}\n")
+            file.write(f"data: {json.dumps(data, indent=2)}\n")
+            file.write('\n')
+            file.write(f"--- (response) ---\n")
+            file.write(f"status: {response.status_code}\n")
+            file.write("headers: "
+                       + f"{json.dumps(dict(response.headers), indent=2)}\n")
+            file.write(f"content: {json.dumps(response.json(), indent=2)}\n")
             file.write('\n')
 
     # Processing Functions
