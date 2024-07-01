@@ -120,14 +120,16 @@ class Chat():
     def write_request_debug_log(self, headers, data, response):
         with open(REQUEST_DEBUG_LOG, 'w', encoding='utf-8') as file:
             file.write('--- (request) ---\n')
-            file.write(f"headers: {json.dumps(headers, indent=2)}\n")
-            file.write(f"data: {json.dumps(data, indent=2)}\n")
+            file.write("headers: "
+                + f"{json.dumps(headers, ensure_ascii=False, indent=2)}\n")
+            file.write(f"data: {json.dumps(data, ensure_ascii=False, indent=2)}\n")
             file.write('\n')
             file.write(f"--- (response) ---\n")
             file.write(f"status: {response.status_code}\n")
             file.write("headers: "
-                       + f"{json.dumps(dict(response.headers), indent=2)}\n")
-            file.write(f"content: {json.dumps(response.json(), indent=2)}\n")
+                + f"{json.dumps(dict(response.headers), indent=2)}\n")
+            file.write("content: "
+                + f"{json.dumps(response.json(), ensure_ascii=False, indent=2)}\n")
             file.write('\n')
 
     # Processing Functions
