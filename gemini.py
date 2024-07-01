@@ -53,11 +53,16 @@ class Gemini(chat.Chat):
 
             result = response.json()
 
-            content = result['candidates'][0]['content']['parts'][0]['text']
-            content = content.rstrip(" \n")
-            if content.startswith("'content'"):  # for debug
-                print(content) # for debug
-            model_message = {"role": "model", "parts": [{"text": content}]}
+            if 'content' in result['candidates'][0]:
+                content = result['candidates'][0]['content']['parts'][0]['text']
+                content = content.rstrip(" \n")
+                if content.startswith("'content'"):  # for debug
+                    print(content) # for debug
+                model_message = {"role": "model", "parts": [{"text": content}]}
+            else:
+                content = "ERROR: Failed to get contents in the response. " \
+                     + f"Reason: {result['candidates'][0]['finishReason']}"
+                model_message = {"role": "model", "parts": [{"text": content}]}
 
             print(f"({MODEL}): ", end="")
 
@@ -113,8 +118,13 @@ class Gemini(chat.Chat):
 
             result = response.json()
 
-            content = result['candidates'][0]['content']['parts'][0]['text']
-            content = content.rstrip(" \n")
+            if 'content' in result['candidates'][0]:
+                content = result['candidates'][0]['content']['parts'][0]['text']
+                content = content.rstrip(" \n")
+                model_message = {"role": "model", "parts": [{"text": content}]}
+            else:
+                content = "ERROR: Failed to get the content in the respont. " \
+                    + f"Reason: {result['candidates'][0]['finishReason']}"
 
             print(f"({MODEL}): ", end="")
 
